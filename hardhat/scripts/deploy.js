@@ -8,7 +8,9 @@ const deploy = async () => {
     9
   );
   await contract.deployed();
-  console.log("Add REACT_APP_NFT_CONTRACT to .env: " + contract.address);
+  console.log(
+    "Add this to NEXt_PUBLIC_NFT_CONTRACT in root .env: " + contract.address
+  );
 };
 
 deploy();

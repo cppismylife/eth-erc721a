@@ -25,3 +25,6 @@ yarn-error.log*
 
 cache
 artifacts
+
+.next
+next-env.d.ts
