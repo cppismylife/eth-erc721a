@@ -7,9 +7,9 @@ import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 contract TopCollections is ERC721A, Ownable {
     uint8 public MAX_USER_LIMIT;
     uint256 public TOKEN_PRICE;
+    uint256 public MAX_SUPPLY;
     bytes32 public merkleRoot;
     string private baseURI;
-    uint256 public MAX_SUPPLY;
 
     constructor(
         uint256 _TOKEN_PRICE,
@@ -37,6 +37,10 @@ contract TopCollections is ERC721A, Ownable {
         merkleRoot = root;
     }
 
+    function numberMinted(address user) external view returns (uint) {
+        return _numberMinted(user);
+    }
+
     function mintOne(bytes32[] calldata proof)
         external
         payable
@@ -45,10 +49,10 @@ contract TopCollections is ERC721A, Ownable {
     {
         require(
             _numberMinted(msg.sender) < MAX_USER_LIMIT,
-            "This address has already minted max amount of tokens"
+            "Exceded max mint limit"
         );
         require(msg.value >= TOKEN_PRICE, "Not enough ETH sent");
-        require(totalSupply() + 1 <= MAX_SUPPLY, "Reached max supply");
+        require(_totalMinted() + 1 <= MAX_SUPPLY, "Reached max supply");
         _mint(msg.sender, 1);
     }
 
@@ -62,5 +66,9 @@ contract TopCollections is ERC721A, Ownable {
 
     function _baseURI() internal view virtual override returns (string memory) {
         return baseURI;
+    }
+
+    function totalMinted() external view returns (uint) {
+        return _totalMinted();
     }
 }

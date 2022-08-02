@@ -6,10 +6,12 @@
     "@testing-library/jest-dom": "^5.16.4",
     "@testing-library/react": "^13.3.0",
     "@testing-library/user-event": "^13.5.0",
+    "@types/cors": "^2.8.12",
     "@types/jest": "^27.5.2",
     "@types/node": "^16.11.45",
     "@types/react": "^18.0.15",
     "@types/react-dom": "^18.0.6",
+    "cors": "^2.8.5",
     "dotenv": "^16.0.1",
     "ethers": "^5.6.9",
     "keccak256": "^1.0.6",
@@ -22,7 +24,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "root": "npx ts-node utils/getMerkleRoot.ts"
   },
   "eslintConfig": {
     "extends": [
@@ -34,7 +37,10 @@
     "@nomicfoundation/hardhat-chai-matchers": "^1.0.2",
     "@nomicfoundation/hardhat-toolbox": "^1.0.2",
     "@openzeppelin/contracts": "^4.7.1",
+    "autoprefixer": "^10.4.8",
     "erc721a": "^4.2.0",
-    "hardhat": "^2.10.1"
+    "hardhat": "^2.10.1",
+    "postcss": "^8.4.14",
+    "tailwindcss": "^3.1.7"
   }
 }
