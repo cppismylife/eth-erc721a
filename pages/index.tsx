@@ -81,9 +81,13 @@ export default function IndexPage() {
               </span>
             </h2>
             <div className="flex justify-evenly">
-              <img src="./punk.png" className="lg:w-72 rounded-xl w-56" />
-              <img src="./bayc.png" className="lg:w-72 w-56" />
-              <img src="./mayc.png" className="lg:w-72 w-56" />
+              <img
+                src="./punk.png"
+                className="lg:w-72 rounded-xl w-56"
+                alt="Crypto Punk"
+              />
+              <img src="./bayc.png" className="lg:w-72 w-56" alt="BAYC" />
+              <img src="./mayc.png" className="lg:w-72 w-56" alt="MAYC" />
             </div>
             <div className="mt-10">
               <p className="text-2xl mb-3">
