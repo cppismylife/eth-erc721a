@@ -9,7 +9,7 @@ const deploy = async () => {
   );
   await contract.deployed();
   console.log(
-    "Add this to NEXt_PUBLIC_NFT_CONTRACT in root .env: " + contract.address
+    "Add this to NEXT_PUBLIC_NFT_CONTRACT in root .env: " + contract.address
   );
 };
 
