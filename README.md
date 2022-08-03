@@ -10,4 +10,8 @@ All whitelisted addresses must be in [whitelist.json](whitelist.json), merkle tr
 
 ## Try out
 
+[Link to deployed app](https://eth-erc721a.vercel.app/)
+
+Goerli contract address: `0x4923f74d0c85b5f3ce843e08d3816fb7dae1f205`
+
 If you want to mint an nft, i have added some addresses to whitelist. You can import one of them by any private key in [testPrivateKeys.txt](testprivatekeys.txt)

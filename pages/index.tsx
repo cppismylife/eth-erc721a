@@ -130,6 +130,7 @@ const MintButton = (props: {
     const provider = new ethers.providers.Web3Provider(getProvider());
     const signer = provider.getSigner();
     const signature = await signer.signMessage("Sign to verify your address");
+    setIsMinting(true);
     const response = await fetch(
       `./api/proof?address=${address}&signature=${signature}`
     );
@@ -143,7 +144,6 @@ const MintButton = (props: {
     const tx = await contract
       .connect(provider.getSigner())
       .mintOne(proof, { value: price });
-    setIsMinting(true);
     const receipt = await tx.wait();
     console.log(receipt.transactionHash);
     setTxURL(`https://goerli.etherscan.io/tx/${receipt.transactionHash}`);
@@ -157,8 +157,8 @@ const MintButton = (props: {
     return (
       <h3 className="text-xl font-semibold">
         Successfully minted!{" "}
-        <a className=" underline " href={txURL}>
-          Click to see your nft
+        <a className="underline" href={txURL}>
+          Click to see transaction
         </a>
       </h3>
     );
@@ -166,7 +166,7 @@ const MintButton = (props: {
     return (
       <>
         {isMinting ? (
-          <p className="text-lg">Transcation is processing...</p>
+          <p className="text-lg">Waiting for transaction...</p>
         ) : (
           <button
             className="rounded font-bold w-24 bg-white text-black p-3 duration-700 hover:bg-gray-300"
