@@ -3,52 +3,87 @@ import { useEffect, useState, Dispatch, SetStateAction } from "react";
 import { ethers } from "ethers";
 import abi from "../abi.json";
 
-const getProvider = () => {
-  const { ethereum } = window;
-  if (ethereum) return ethereum;
-  else {
-    alert("Install metamask!");
-    throw new Error("Metamask is not installed");
-  }
-};
-
-const getContract = async () => {
-  const provider = new ethers.providers.Web3Provider(getProvider());
-  const contract = new ethers.Contract(
-    process.env.NEXT_PUBLIC_NFT_CONTRACT as string,
-    abi.abi,
-    provider
-  );
-  return contract;
-};
-
 export default function IndexPage() {
+  const [provider, initProvider] = useState(null);
   const [address, setAddress] = useState("");
   const [hasMinted, setMintStatus] = useState(false);
   const [mintInfo, updateMintInfo] = useState({
     mintedCount: 0,
     maxSupply: 0,
   });
+  const [contract, initContract] = useState(null);
 
   useEffect(() => {
     (async () => {
-      const provider = getProvider();
-      const accounts = await provider.request({ method: "eth_accounts" });
-      const contract = await getContract();
-      updateMintedAmount(contract);
-      if (accounts.length) {
-        setAddress(accounts[0]);
-        await hasUserMinted(contract, accounts[0]);
-      }
+      initProvider(await getProvider());
     })();
   }, []);
 
-  const hasUserMinted = async (contract: ethers.Contract, account: string) => {
+  useEffect(() => {
+    handleNetwork();
+    initContract(getContract());
+  }, [provider]);
+
+  useEffect(() => {
+    (async () => {
+      if (contract) {
+        const accounts = await provider.provider.request({
+          method: "eth_accounts",
+        });
+        updateMintedAmount();
+        if (accounts.length) {
+          setAddress(accounts[0]);
+          await hasUserMinted(accounts[0]);
+        }
+      }
+    })();
+  }, [contract]);
+
+  const getProvider = async () => {
+    const { ethereum } = window;
+    if (ethereum) {
+      const provider = new ethers.providers.Web3Provider(ethereum, "any");
+      await checkNetwork(provider);
+      return provider;
+    } else {
+      alert("Install metamask!");
+      throw new Error("Metamask is not installed");
+    }
+  };
+
+  const checkNetwork = async (provider) => {
+    if ((await provider.getNetwork()).chainId !== 5)
+      await provider.provider.request({
+        method: "wallet_switchEthereumChain",
+        params: [{ chainId: "0x5" }],
+      });
+  };
+
+  const handleNetwork = async () => {
+    if (provider) {
+      provider.on("network", () => {
+        checkNetwork(provider);
+      });
+    }
+  };
+
+  const getContract = () => {
+    if (provider) {
+      const contract = new ethers.Contract(
+        process.env.NEXT_PUBLIC_NFT_CONTRACT as string,
+        abi.abi,
+        provider
+      );
+      return contract;
+    }
+  };
+
+  const hasUserMinted = async (account: string) => {
     const mintedAmount = await contract.numberMinted(account);
     setMintStatus(Boolean(mintedAmount.toNumber()));
   };
 
-  const updateMintedAmount = async (contract: ethers.Contract) => {
+  const updateMintedAmount = async () => {
     const maxSupply = (await contract.MAX_SUPPLY()).toNumber();
     const mintedCount = (await contract.totalMinted()).toNumber();
     updateMintInfo({ mintedCount, maxSupply });
@@ -68,7 +103,13 @@ export default function IndexPage() {
             <h1 className=" ml-5 text-4xl font-bold tracking-wide">
               All top NFTs just in one collection
             </h1>
-            <Wallet address={address} setAddress={setAddress} />
+            {provider && (
+              <Wallet
+                address={address}
+                setAddress={setAddress}
+                provider={provider}
+              />
+            )}
           </div>
         </header>
         <main>
@@ -97,10 +138,14 @@ export default function IndexPage() {
               {address ? (
                 <>
                   {!hasMinted ? (
-                    <MintButton
-                      address={address}
-                      updateMintedAmount={updateMintedAmount}
-                    />
+                    contract && (
+                      <MintButton
+                        address={address}
+                        updateMintedAmount={updateMintedAmount}
+                        provider={provider}
+                        contract={contract}
+                      />
+                    )
                   ) : (
                     <p className="text-xl">You have already minted</p>
                   )}
@@ -120,26 +165,30 @@ export default function IndexPage() {
 const MintButton = (props: {
   address: string;
   updateMintedAmount: Function;
+  provider: ethers.providers.Web3Provider;
+  contract: ethers.Contract;
 }) => {
   const address = props.address;
+  const provider = props.provider;
+  const contract = props.contract;
   const [error, onError] = useState({ isError: false, errorMsg: "" });
   const [isMinting, setIsMinting] = useState(false);
   const [txURL, setTxURL] = useState("");
 
   const mint = async () => {
-    const provider = new ethers.providers.Web3Provider(getProvider());
     const signer = provider.getSigner();
     const signature = await signer.signMessage("Sign to verify your address");
     setIsMinting(true);
     const response = await fetch(
       `./api/proof?address=${address}&signature=${signature}`
-    );
-    if (!response.ok) {
-      onError({ isError: true, errorMsg: await response.text() });
+    ).then(async (r) => {
+      return await r.json();
+    });
+    if (!response.success) {
+      onError({ isError: true, errorMsg: response.msg });
       return;
     }
-    const proof = await response.json();
-    const contract = await getContract();
+    const { proof } = response;
     const price = (await contract.TOKEN_PRICE()).toString();
     const tx = await contract
       .connect(provider.getSigner())
@@ -182,12 +231,14 @@ const MintButton = (props: {
 const Wallet = (props: {
   address: string;
   setAddress: Dispatch<SetStateAction<string>>;
+  provider: ethers.providers.Web3Provider;
 }) => {
-  const { address, setAddress } = props;
+  const { address, setAddress, provider } = props;
 
   const connectWallet = async () => {
-    const provider = getProvider();
-    const accounts = await provider?.request({ method: "eth_requestAccounts" });
+    const accounts = await provider.provider.request({
+      method: "eth_requestAccounts",
+    });
     if (accounts.length) setAddress(accounts[0]);
   };
 

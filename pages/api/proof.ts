@@ -19,7 +19,7 @@ export default async function handler(
     const leaf = keccak256(encodeLeaf(address));
     const proof = merkleTree.getHexProof(leaf);
     if (!proof.length) {
-      res.status(500).send("You are not whitelisted!");
-    } else res.send(proof);
-  } else res.status(500).send("Failed to verify");
+      res.send({ msg: "You are not whitelisted!", success: false });
+    } else res.send({ proof, success: true });
+  } else res.send({ msg: "Failed to verify", success: false });
 }

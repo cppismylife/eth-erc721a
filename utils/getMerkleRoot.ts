@@ -1,2 +1,2 @@
-const { setMerkleTree } = require("./setupTree");
+import { setMerkleTree } from "./setupTree";
 console.log(setMerkleTree().getHexRoot());
